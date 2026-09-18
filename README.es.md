@@ -146,6 +146,7 @@ Voces en español: `ef_dora` (femenina, por defecto), `em_alex` y `em_santa` (ma
 `jarvis tts say --voice em_alex "Hola, soy Jarvis"` o los archivos de `~/Desktop/jarvis-muestras-voz/`. Cambia con
 `jarvis config set tts.voice em_alex`; velocidad con `tts.speed`. Sin el modelo descargado se usa la voz del sistema
 (y se prefieren automáticamente las voces «Premium/Enhanced» si las instalas en Ajustes → Accesibilidad → Contenido hablado).
+Consulta [docs/tts-voices.md](docs/tts-voices.md) para ver la guía detallada sobre cómo listar, probar y configurar voces.
 
 ## Uso
 
