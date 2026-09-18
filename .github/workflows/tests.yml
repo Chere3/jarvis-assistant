@@ -1,0 +1,18 @@
+name: tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  pytest:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Instalar dependencias
+        run: |
+          uv venv --python 3.12 .venv
+          uv sync --extra dev
+          uv pip install -e .
+      - name: Ejecutar pruebas
+        run: uv run pytest -q

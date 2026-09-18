@@ -1,4 +1,16 @@
-# JARVIS — asistente personal de escritorio (macOS, Apple Silicon)
+<h1 align="center">JARVIS</h1>
+
+<p align="center">Asistente personal de escritorio para macOS: voz local, memoria wiki en Markdown y razonamiento con Claude.</p>
+
+<p align="center">
+  <a href="https://github.com/Chere3/jarvis-assistant/actions/workflows/tests.yml"><img alt="tests" src="https://github.com/Chere3/jarvis-assistant/actions/workflows/tests.yml/badge.svg"></a>
+  <img alt="python" src="https://img.shields.io/badge/python-3.12-blue">
+  <img alt="plataforma" src="https://img.shields.io/badge/macOS-Apple%20Silicon-black">
+  <a href="LICENSE"><img alt="licencia" src="https://img.shields.io/badge/license-MIT-green"></a>
+</p>
+
+---
+
 
 Asistente por voz y texto con memoria persistente en forma de wiki Markdown, razonamiento con Claude (Agent SDK),
 activación por palabra clave local, herramientas locales autorizadas y un panel web con explorador visual de la memoria.
@@ -268,3 +280,11 @@ Resultados reales en `docs/test-results.md` y `docs/memory-eval.md`.
 - Creación de páginas por la ruta normal: ~0,4 s/página con 1000 páginas (bloqueo + journal + índice); apto para uso diario, no para cargas masivas.
 - Con 5000 nodos el layout inicial del grafo cae a ~21 FPS durante unos segundos; usa filtros o la vista local.
 - No se promete funcionamiento durante la suspensión del Mac.
+
+## Licencia
+
+MIT. Ver [LICENSE](LICENSE).
+
+## Contribuir
+
+Lee [CONTRIBUTING.md](CONTRIBUTING.md) y el [codigo de conducta](CODE_OF_CONDUCT.md). Para vulnerabilidades, [SECURITY.md](SECURITY.md).
