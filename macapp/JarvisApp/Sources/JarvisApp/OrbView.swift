@@ -198,7 +198,7 @@ final class BubbleWindow: NSPanel {
         primary.toolTip = primary.title + " · ⌥Espacio"
         deny.isHidden = !approval
         wake.image = NSImage(systemSymbolName: listening ? "ear.badge.waveform" : "ear", accessibilityDescription: listening ? "Desactivar palabra de activación" : "Activar palabra de activación")
-        wake.toolTip = listening ? "Escucha «hey jarvis» activada; clic para pausar" : "Activar escucha «hey jarvis»"
+        wake.toolTip = listening ? "Escucha «Jarvis» activada; clic para pausar" : "Activar escucha «Jarvis»"
         if approval || !["IDLE", "DISABLED", "ERROR"].contains(state) { hideTimer?.invalidate() }
     }
 

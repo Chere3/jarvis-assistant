@@ -30,7 +30,8 @@ class WakeWordProvider(Protocol):
 
 
 class OpenWakeWordProvider:
-    """openWakeWord (ONNX). Modelo integrado `hey_jarvis` o ruta a un .onnx propio. Frames de 80 ms a 16 kHz."""
+    """openWakeWord (ONNX). Ruta a un .onnx propio (por defecto models/jarvis.onnx, «Jarvis» en es/en) o nombre de un
+    modelo integrado como `hey_jarvis`. Frames de 80 ms a 16 kHz."""
 
     name = "openwakeword"
 
@@ -52,6 +53,9 @@ class OpenWakeWordProvider:
             from openwakeword.model import Model
             spec = self.cfg.model_path
             if not Path(spec).exists():
+                if spec.endswith((".onnx", ".tflite")) or "/" in spec:
+                    raise FileNotFoundError(f"no existe el modelo de activación {spec}; entrena uno con "
+                                            "scripts/train_wakeword.py o usa el integrado hey_jarvis")
                 utils.download_models(model_names=[spec])
             self.model = Model(wakeword_models=[spec], inference_framework="onnx")
             self._model_key = list(self.model.models.keys())[0]
@@ -79,7 +83,9 @@ class OpenWakeWordProvider:
     def status(self) -> dict:
         return {"provider": self.name, "keyword": self.keyword, "model": self.cfg.model_path, "language": self.cfg.language,
                 "threshold": self.threshold, "ready": self.model is not None, "error": self.error,
-                "note": "modelo preentrenado en inglés («hey jarvis»); funciona con pronunciación aproximada en español"}
+                "note": ("modelo propio entrenado con voces sintéticas en español e inglés (scripts/train_wakeword.py)"
+                         if self.cfg.model_path.endswith(".onnx") else
+                         "modelo preentrenado de openWakeWord en inglés; funciona con pronunciación aproximada en español")}
 
 
 class PorcupineProvider:

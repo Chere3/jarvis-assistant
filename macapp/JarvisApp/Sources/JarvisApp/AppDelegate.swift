@@ -89,7 +89,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         m.addItem(.separator())
         m.addItem(withTitle: "Hablar (pulsar-para-hablar)   ⌥Espacio", action: #selector(ptt), keyEquivalent: "")
         m.addItem(withTitle: "Detener respuesta", action: #selector(stop), keyEquivalent: "")
-        let l = m.addItem(withTitle: listening ? "Desactivar escucha «hey jarvis»" : "Activar escucha «hey jarvis»", action: #selector(toggleListening), keyEquivalent: "")
+        let l = m.addItem(withTitle: listening ? "Desactivar escucha «Jarvis»" : "Activar escucha «Jarvis»", action: #selector(toggleListening), keyEquivalent: "")
         l.state = listening ? .on : .off
         if let ap = pendingApproval, let id = ap["id"] as? String {
             m.addItem(.separator())

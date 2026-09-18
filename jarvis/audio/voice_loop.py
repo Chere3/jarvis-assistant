@@ -145,7 +145,7 @@ class VoiceLoop:
             ep.feed(f)
         loop = asyncio.get_running_loop()
         outcome = None
-        deadline = time.monotonic() + a.max_utterance_s + 3
+        deadline = (time.monotonic() + a.max_utterance_s + 3) if a.max_utterance_s and a.max_utterance_s > 0 else float("inf")
         while outcome is None and time.monotonic() < deadline and self.orch.state == State.LISTENING:
             frame = await loop.run_in_executor(None, self.capture.read, 0.3)
             if frame is None:

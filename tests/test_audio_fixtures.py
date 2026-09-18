@@ -26,25 +26,29 @@ def test_stt_spanish_fixture():
     assert "proyecto" in tr2.text.lower() and "asistente" in tr2.text.lower()
 
 
-@pytest.mark.skipif(not (FIX / "hey_jarvis_en.wav").exists(), reason="ejecuta scripts/make_fixtures.sh")
+@pytest.mark.skipif(not (FIX / "jarvis_es.wav").exists(), reason="ejecuta scripts/make_fixtures.sh")
 def test_wakeword_fixtures_and_cooldown():
+    """Modelo propio models/jarvis.onnx («Jarvis» sola, es/en) con la configuración por defecto."""
     from jarvis.audio.wakeword import OpenWakeWordProvider, WakeWordDetector
     from jarvis.config import WakeWordConfig
-    prov = OpenWakeWordProvider(WakeWordConfig())
+    cfg = WakeWordConfig()
+    assert cfg.keyword_label == "Jarvis" and cfg.model_path.endswith("jarvis.onnx")
+    prov = OpenWakeWordProvider(cfg)
     prov.initialize()
-    det = WakeWordDetector(prov, cooldown_s=2.0)
-    results = {}
-    for name in ("hey_jarvis_en", "hey_jarvis_es"):
+    det = WakeWordDetector(prov, cooldown_s=cfg.cooldown_s, min_consecutive=cfg.min_consecutive_frames)
+
+    def hits(name: str) -> int:
         audio = np.concatenate([np.zeros(16000, np.int16), load(name), np.zeros(16000, np.int16)])
         prov.model.reset()
-        hits = 0
-        for i in range(0, len(audio) - 1280, 1280):
-            if det.process(audio[i:i + 1280]):
-                hits += 1
-        results[name] = hits
         det.last_ts = 0.0
-    assert results["hey_jarvis_en"] == 1, results  # una sola activación pese a varios frames sobre el umbral (cooldown)
-    assert results["hey_jarvis_es"] >= 1, results
+        return sum(1 for i in range(0, len(audio) - 1280, 1280) if det.process(audio[i:i + 1280]))
+
+    # «Jarvis» sola en inglés y español, «hey jarvis» (contiene la palabra) y una petición que empieza por «Jarvis»
+    positives = {n: hits(n) for n in ("jarvis_en", "jarvis_es", "hey_jarvis_en", "hey_jarvis_es", "es_recuerda", "es_dificil")}
+    assert all(v == 1 for v in positives.values()), positives  # una sola activación por clip pese a varios frames sobre el umbral (cooldown)
+    # frases sin la palabra, con sonidos parecidos (jarabe, jardín, Javier, Travis, harvest, service…): ninguna activación
+    negatives = {n: hits(n) for n in ("es_proyecto", "es_negativo", "en_negativo")}
+    assert all(v == 0 for v in negatives.values()), negatives
     # silencio: sin activaciones
     prov.model.reset()
     det.last_ts = 0.0

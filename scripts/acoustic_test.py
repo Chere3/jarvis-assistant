@@ -1,4 +1,4 @@
-"""Prueba acústica real: reproduce por los ALTAVOCES del Mac la palabra de activación y una petición en español,
+"""Prueba acústica real: reproduce por los ALTAVOCES del Mac la palabra de activación (wake_word.keyword_label) y una petición en español,
 mientras el bucle de voz escucha por el MICRÓFONO real. Usa Claude real salvo --demo.
 Requiere que el micrófono capte los altavoces (sin auriculares en el micrófono)."""
 from __future__ import annotations
@@ -19,6 +19,7 @@ async def main() -> int:
     ap.add_argument("--demo", action="store_true")
     ap.add_argument("--device", default="MacBook Air Speakers")
     ap.add_argument("--request", default="¿Qué preferencias mías conoces?")
+    ap.add_argument("--voice", default="Paulina", help="voz de `say` para la palabra de activación (p. ej. Samantha para inglés)")
     args = ap.parse_args()
     app = build_app(demo=args.demo, speaker=make_tts(load := __import__("jarvis.config", fromlist=["load_config"]).load_config()), speak_responses=True)
     if not app.demo:
@@ -41,8 +42,9 @@ async def main() -> int:
     task = asyncio.create_task(vl.run())
     await asyncio.sleep(1.5)
     t0 = time.time()
-    print("reproduciendo «hey jarvis» por", args.device, flush=True)
-    subprocess.run(["say", "-a", args.device, "-v", "Samantha", "hey jarvis"], check=False)
+    keyword = app.cfg.wake_word.keyword_label
+    print(f"reproduciendo «{keyword}» por", args.device, flush=True)
+    subprocess.run(["say", "-a", args.device, "-v", args.voice, keyword], check=False)
     for _ in range(40):
         if any(e["kind"] == "voice.activation" for e in events):
             break

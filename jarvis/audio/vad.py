@@ -32,7 +32,8 @@ class Endpointer:
         self.frame_ms = frame_ms
         self.end_silence_frames = max(1, end_silence_ms // frame_ms)
         self.min_speech_frames = max(1, min_speech_ms // frame_ms)
-        self.max_frames = int(max_utterance_s * 1000 / frame_ms)
+        # max_utterance_s <= 0 => sin límite: solo termina el silencio final
+        self.max_frames = int(max_utterance_s * 1000 / frame_ms) if max_utterance_s and max_utterance_s > 0 else 0
         self.frames: list[np.ndarray] = []
         self.speech_frames = 0
         self.silence_run = 0
@@ -50,7 +51,7 @@ class Endpointer:
             self.silence_run += 1
         if self.started and self.silence_run >= self.end_silence_frames:
             return "end" if self.speech_frames >= self.min_speech_frames else "nospeech"
-        if len(self.frames) >= self.max_frames:
+        if self.max_frames and len(self.frames) >= self.max_frames:
             return "timeout" if self.speech_frames >= self.min_speech_frames else "nospeech"
         if not self.started and len(self.frames) >= self.end_silence_frames * 4:
             return "nospeech"

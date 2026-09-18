@@ -14,6 +14,10 @@ import yaml
 from pydantic import BaseModel, Field, field_validator
 
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_WAKE_MODEL = REPO_ROOT / "models" / "jarvis.onnx"  # modelo propio «Jarvis» (es/en), ver scripts/train_wakeword.py
+
+
 def jarvis_home() -> Path:
     return Path(os.environ.get("JARVIS_HOME", "~/.jarvis")).expanduser()
 
@@ -85,11 +89,11 @@ class MemoryConfig(BaseModel):
 
 class WakeWordConfig(BaseModel):
     provider: Literal["openwakeword", "porcupine", "none"] = "openwakeword"
-    keyword_label: str = "Hey Jarvis"
-    model_path: str = "hey_jarvis"  # nombre integrado o ruta a .onnx/.ppn
-    language: str = "en"
+    keyword_label: str = "Jarvis"
+    model_path: str = str(DEFAULT_WAKE_MODEL)  # ruta a .onnx/.ppn o nombre integrado de openwakeword (p. ej. hey_jarvis)
+    language: str = "es,en"  # el modelo propio se entrenó con voces en español e inglés
     sensitivity: float = 0.5
-    cooldown_s: float = 2.0
+    cooldown_s: float = 3.0
     min_consecutive_frames: int = 1
 
     @field_validator("sensitivity")
@@ -106,8 +110,8 @@ class AudioConfig(BaseModel):
     sample_rate: int = 16000
     frame_ms: int = 80  # 1280 muestras a 16 kHz (compatible con openwakeword)
     preroll_ms: int = 600  # búfer circular en RAM, se descarta sin guardar
-    max_utterance_s: float = 15.0
-    end_silence_ms: int = 1100
+    max_utterance_s: float = 0.0  # 0 = sin límite: escucha hasta que dejes de hablar
+    end_silence_ms: int = 1600
     min_speech_ms: int = 300
     vad_aggressiveness: int = 2
     follow_up_window_s: float = 0.0
@@ -123,8 +127,8 @@ class STTConfig(BaseModel):
 
 
 class TTSConfig(BaseModel):
-    provider: Literal["kokoro", "macos_say", "none"] = "kokoro"  # kokoro = voz neuronal local realista
-    voice: str = "ef_dora"  # kokoro: ef_dora | em_alex | em_santa · macos_say: Paulina | Mónica (o Premium instaladas)
+    provider: Literal["kokoro", "macos_say", "none"] = "macos_say"  # kokoro = voz neuronal local realista
+    voice: str = "Paulina"  # kokoro: ef_dora | em_alex | em_santa · macos_say: Paulina | Mónica (o Premium instaladas)
     rate: int = 175  # solo macos_say (palabras por minuto)
     speed: float = 1.0  # solo kokoro (1.0 = normal)
     enabled: bool = True
@@ -203,11 +207,23 @@ class Config(BaseModel):
         t.allowed_open_dirs = [p.expanduser() for p in t.allowed_open_dirs] or [t.workspace_dir]
         self.logging.dir = self.logging.dir.expanduser()
         self.claude.cwd = (self.claude.cwd or Path("~")).expanduser()
+        w = self.wake_word
+        if w.model_path.startswith("~"):
+            w.model_path = str(Path(w.model_path).expanduser())
+        elif "/" in w.model_path and not Path(w.model_path).is_absolute() and (REPO_ROOT / w.model_path).exists():
+            w.model_path = str(REPO_ROOT / w.model_path)  # rutas relativas (p. ej. models/jarvis.onnx) respecto al repo
         return self
 
 
 def config_path() -> Path:
-    return Path(os.environ.get("JARVIS_CONFIG", jarvis_home() / "config.yaml")).expanduser()
+    """JARVIS_CONFIG > ~/.jarvis/config.yaml > ~/.config/jarvis/assistant.yaml (si existe) > ~/.jarvis/config.yaml."""
+    if os.environ.get("JARVIS_CONFIG"):
+        return Path(os.environ["JARVIS_CONFIG"]).expanduser()
+    home = jarvis_home() / "config.yaml"
+    xdg = Path(os.environ.get("XDG_CONFIG_HOME", "~/.config")).expanduser() / "jarvis" / "assistant.yaml"
+    if not home.exists() and xdg.exists():
+        return xdg
+    return home
 
 
 def load_config(path: Path | None = None) -> Config:
