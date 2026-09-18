@@ -73,6 +73,7 @@ class Orchestrator:
         self.listening_enabled = False
         self.history: list[dict[str, Any]] = []
         self.last_trace: dict[str, Any] | None = None
+        self.context_provider: Callable[[], str] | None = None  # contexto operativo (sesiones, runs, avisos) por turno
         self._turn_lock = asyncio.Lock()
         self.sessions_dir = cfg.memory.runtime_dir / "sessions"
         self.traces_dir = cfg.memory.runtime_dir / "traces" / self.session_id
@@ -246,7 +247,14 @@ class Orchestrator:
         if self.log and self.cfg.logging.log_retrieval:
             self.log.info("turno %s: recuperados %s (%d chars de %d)", turn.turn_id,
                           [p.id for p in trace.retrieved], trace.total_chars, m.context_budget_chars)
-        prompt = f"{ctx}\n\nPetición del usuario ({'voz' if source == 'voice' else 'texto'}): {text}" if ctx else text
+        extra = ""
+        if self.context_provider:
+            try:
+                extra = self.context_provider() or ""
+            except Exception:
+                extra = ""
+        head = "\n\n".join(p for p in (ctx, extra) if p)
+        prompt = f"{head}\n\nPetición del usuario ({'voz' if source == 'voice' else 'texto'}): {text}" if head else text
 
         stream_voice = bool(self.speak_responses and self.speaker and self.cfg.tts.enabled and hasattr(self.speaker, "say_async"))
         spoken_upto = {"n": 0, "buf": ""}

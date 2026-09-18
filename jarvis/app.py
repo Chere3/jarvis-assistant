@@ -26,10 +26,20 @@ class App:
     orchestrator: Orchestrator
     logger: Any
     demo: bool = False
+    foreman: Any = None
+
+    async def start_services(self) -> None:
+        """Arranca lo que necesita un bucle de eventos: el vigilante de sesiones y el barrido de runs."""
+        if self.foreman:
+            await self.foreman.start()
+
+    async def stop_services(self) -> None:
+        if self.foreman:
+            await self.foreman.stop()
 
 
 def build_app(cfg: Config | None = None, demo: bool = False, speaker: Any = None, speak_responses: bool = False,
-              resume: bool = False, demo_script: list | None = None) -> App:
+              resume: bool = False, demo_script: list | None = None, foreman: bool = True) -> App:
     cfg = cfg or load_config()
     logger = setup_logging(cfg.logging.dir, cfg.logging.level)
     bus = EventBus()
@@ -45,4 +55,13 @@ def build_app(cfg: Config | None = None, demo: bool = False, speaker: Any = None
     registry.set_model_provider(provider)
     orch = Orchestrator(cfg, service, provider, registry, approvals, bus, logger, speaker=speaker,
                         speak_responses=speak_responses)
-    return App(cfg, bus, service, registry, approvals, provider, orch, logger, demo)
+    fm = None
+    if foreman:
+        from .agent.foreman_tools import register_foreman_tools
+        from .foreman import Foreman
+        fm = Foreman(cfg, bus, orch, logger, provider=provider)
+        register_foreman_tools(registry, fm)
+        orch.context_provider = fm.context_block
+        if hasattr(provider, "on_rate_limit"):
+            provider.on_rate_limit = lambda info: (fm.usage.record(info), bus.publish("usage.updated", **fm.usage.snapshot()))
+    return App(cfg, bus, service, registry, approvals, provider, orch, logger, demo, fm)

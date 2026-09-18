@@ -372,6 +372,11 @@ def create_web_app(app: Any, voice: Any, token: str) -> FastAPI:
             devs = [{"error": str(e)}]
         return {"devices": devs, "voices": list_spanish_voices()}
 
+    # ------------------------------------------------------------- capataz: sesiones, runs, proyectos, documentos, uso
+    fm = getattr(app, "foreman", None)
+    if fm is not None:
+        register_foreman_api(web, app, fm)
+
     # ------------------------------------------------------------- SSE
     @web.get("/api/events")
     async def events(request: Request):
@@ -385,6 +390,8 @@ def create_web_app(app: Any, voice: Any, token: str) -> FastAPI:
                 pass
 
         unsub = app.bus.subscribe(listener)
+        if fm is not None:
+            fm.clients += 1
 
         async def gen():
             hello = {"kind": "hello", "memory_version": svc.version(), "state": orch.snapshot()}
@@ -400,11 +407,211 @@ def create_web_app(app: Any, voice: Any, token: str) -> FastAPI:
                         yield ": ping\n\n"
             finally:
                 unsub()
+                if fm is not None:
+                    fm.clients = max(0, fm.clients - 1)
 
         return StreamingResponse(gen(), media_type="text/event-stream",
                                  headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
     return web
+
+
+class SteerIn(BaseModel):
+    text: str
+
+
+class AnswerKeyIn(BaseModel):
+    key: str
+
+
+class RunIn(BaseModel):
+    prompt: str
+    project: str
+    model: str | None = None
+
+
+class DocIn(BaseModel):
+    project: str
+    path: str
+
+
+class SectionIn(BaseModel):
+    project: str
+    path: str
+    number: int
+    body: str
+    title: str | None = None
+
+
+def register_foreman_api(web: FastAPI, app: Any, fm: Any) -> None:
+    """Endpoints que consume el panel nativo (Jarvis.app). Todo en loopback y con token, como el resto."""
+    from ..runs import specs
+    from ..runs.store import RunStatus
+    from ..sessions.watch import session_to_dict
+
+    def _session_or_404(session_id: str):
+        s = fm.snapshot.by_id(session_id)
+        if not s:
+            raise HTTPException(404, "sesión desconocida")
+        return s
+
+    @web.get("/api/sessions")
+    async def sessions():
+        return fm.sessions_payload()
+
+    @web.get("/api/sessions/{session_id}")
+    async def session_detail(session_id: str):
+        s = _session_or_404(session_id)
+        return {"session": session_to_dict(s), "line": fm.session_line(s),
+                "transcript": await asyncio.to_thread(fm.transcript_tail, s)}
+
+    @web.post("/api/sessions/{session_id}/steer")
+    async def session_steer(session_id: str, body: SteerIn):
+        s = _session_or_404(session_id)
+        if not body.text.strip():
+            raise HTTPException(400, "texto vacío")
+        return {"outcome": await fm.steer_session(s, body.text)}
+
+    @web.post("/api/sessions/{session_id}/answer")
+    async def session_answer(session_id: str, body: AnswerKeyIn):
+        s = _session_or_404(session_id)
+        return {"outcome": await fm.answer_dialog(s, body.key)}
+
+    @web.get("/api/runs")
+    async def runs(status: str = "", project: str = "", limit: int = 50, before: float | None = None):
+        st = [x for x in status.split(",") if x] or None
+        items = await asyncio.to_thread(fm.store.list_runs, st, project or None, max(1, min(limit, 200)), before)
+        return {"runs": items, "stats": await asyncio.to_thread(fm.store.stats)}
+
+    @web.post("/api/runs")
+    async def run_create(body: RunIn):
+        p = fm.resolve_project(body.project)
+        if not p:
+            raise HTTPException(404, "proyecto desconocido")
+        if not body.prompt.strip():
+            raise HTTPException(400, "prompt vacío")
+        run_id = await fm.spawn_run(body.prompt, p, origin="panel", model=body.model)
+        return {"run_id": run_id}
+
+    @web.get("/api/runs/{run_id}")
+    async def run_get(run_id: str):
+        r = await asyncio.to_thread(fm.store.get_run, run_id)
+        if not r:
+            raise HTTPException(404, "run desconocido")
+        return r
+
+    @web.get("/api/runs/{run_id}/events")
+    async def run_events(run_id: str, after: int = 0, limit: int = 200):
+        rows = await asyncio.to_thread(fm.store.get_events, run_id, after, max(1, min(limit, 1000)))
+        from ..runs import stream_parser
+        out = []
+        for row in rows:
+            ev = stream_parser.parse_line(row["payload"]) or {}
+            kind = row["kind"]
+            text = ""
+            if kind == "assistant":
+                text = stream_parser.summarize_assistant(ev)
+            elif kind == "result":
+                text = (ev.get("result") or "")[:500] if isinstance(ev.get("result"), str) else ""
+            elif kind == "system":
+                text = f"{ev.get('subtype') or ''} {ev.get('model') or ''}".strip()
+            elif kind == "user":
+                msg = ev.get("message") if isinstance(ev.get("message"), dict) else {}
+                c = msg.get("content")
+                if isinstance(c, list):
+                    text = "; ".join((str((b.get('content') if isinstance(b.get('content'), str) else ''))[:120]) for b in c if isinstance(b, dict) and b.get("type") == "tool_result")
+            out.append({"seq": row["seq"], "ts": row["ts"], "kind": kind, "text": text})
+        return {"events": out}
+
+    @web.post("/api/runs/{run_id}/cancel")
+    async def run_cancel(run_id: str):
+        return {"cancelled": await fm.executor.cancel(run_id)}
+
+    @web.get("/api/projects")
+    async def projects():
+        return {"projects": await asyncio.to_thread(fm.projects_payload), "root": str(fm.projects_root())}
+
+    @web.get("/api/projects/detail")
+    async def project_detail(path: str):
+        p = fm.resolve_project(path)
+        if not p:
+            raise HTTPException(404, "proyecto desconocido")
+        sessions_here = [session_to_dict(s) for s in fm.snapshot.sessions if s.cwd == str(p)]
+        runs_here = await asyncio.to_thread(fm.store.list_runs, None, p.name, 20)
+        review = await asyncio.to_thread(specs.project_review, str(p))
+        build = await asyncio.to_thread(fm.build_status, p)
+        return {"name": p.name, "path": str(p), "sessions": sessions_here, "runs": runs_here, "review": review, "build": build}
+
+    @web.get("/api/documents")
+    async def documents(project: str):
+        p = fm.resolve_project(project)
+        if not p:
+            raise HTTPException(404, "proyecto desconocido")
+        return {"project": str(p), "documents": await asyncio.to_thread(specs.list_documents, str(p))}
+
+    @web.get("/api/documents/read")
+    async def document_read(project: str, path: str):
+        p = fm.resolve_project(project)
+        if not p:
+            raise HTTPException(404, "proyecto desconocido")
+        doc = await asyncio.to_thread(specs.read_document, str(p), path)
+        if not doc:
+            raise HTTPException(404, "documento desconocido")
+        doc["project"] = str(p)
+        return doc
+
+    @web.post("/api/documents/approve")
+    async def document_approve(body: DocIn):
+        p = fm.resolve_project(body.project)
+        if not p:
+            raise HTTPException(404, "proyecto desconocido")
+        try:
+            rec = await asyncio.to_thread(specs.record_approval, str(p), body.path, "panel")
+        except ValueError as e:
+            raise HTTPException(404, str(e))
+        app.bus.publish("documents.changed", project=str(p), path=body.path)
+        return rec
+
+    @web.post("/api/documents/section")
+    async def document_section(body: SectionIn):
+        p = fm.resolve_project(body.project)
+        if not p:
+            raise HTTPException(404, "proyecto desconocido")
+        ok = await asyncio.to_thread(specs.replace_section, str(p), body.path, body.number, body.body, body.title)
+        if not ok:
+            raise HTTPException(400, "no se pudo reescribir la sección")
+        app.bus.publish("documents.changed", project=str(p), path=body.path)
+        return {"ok": True}
+
+    @web.post("/api/documents/build")
+    async def document_build(body: DocIn):
+        p = fm.resolve_project(body.project)
+        if not p:
+            raise HTTPException(404, "proyecto desconocido")
+        st = specs.approval_of(str(p), body.path)
+        if st["state"] != "approved":
+            raise HTTPException(409, f"la spec no está aprobada ({st['state']})")
+        run_id = await fm.start_build(p, body.path)
+        return {"run_id": run_id}
+
+    @web.get("/api/usage")
+    async def usage():
+        snap = fm.usage.snapshot()
+        snap["runs_today"] = await asyncio.to_thread(fm.store.stats)
+        snap["spoken"] = fm.usage.spoken()
+        return snap
+
+    @web.get("/api/announcements")
+    async def announcements(limit: int = 50):
+        return {"items": await asyncio.to_thread(fm.store.list_announcements, max(1, min(limit, 200))),
+                "steers": await asyncio.to_thread(fm.store.list_steers, 30)}
+
+    @web.get("/api/foreman")
+    async def foreman_state():
+        snap = fm.snapshot
+        return {"watching": fm.watcher._task is not None, "sessions": len(snap.sessions),
+                "needs_you": len(snap.needing_you()), "active_runs": len(fm.active_runs()),
+                "projects_root": str(fm.projects_root()), "clients": fm.clients}
 
 
 async def run_serve(args: Any) -> int:
@@ -434,6 +641,9 @@ async def run_serve(args: Any) -> int:
             await app.provider.start()
         except Exception as e:
             print(f"Claude no disponible: {e}. El panel arranca igualmente; revisa `jarvis doctor`.", flush=True)
+    await app.start_services()
+    if app.foreman:
+        print(f"Vigilando sesiones de Claude Code ({len(app.foreman.snapshot.sessions)} al arrancar); proyectos en {app.foreman.projects_root()}", flush=True)
     voice = None
     if args.listen:
         from ..audio.voice_loop import VoiceLoop
@@ -505,6 +715,7 @@ async def run_serve(args: Any) -> int:
             await voice.stop()
         for t in tasks[1:]:
             t.cancel()
+        await app.stop_services()
         await app.provider.stop()
         os.close(fd)
     return 0

@@ -139,6 +139,24 @@ class ToolsConfig(BaseModel):
     approval_ttl_s: int = 120
 
 
+class SessionsConfig(BaseModel):
+    """Vigilancia de todas las sesiones de Claude Code del Mac (roster en ~/.claude/sessions)."""
+    watch: bool = True
+    interval_s: float = 1.0
+    announce: bool = True  # decir en voz alta cuando una sesión te espera o termina
+    notify_fallback: bool = True  # notificación nativa de macOS si no se puede hablar
+
+
+class RunsConfig(BaseModel):
+    """Runs: sesiones `claude -p` que el asistente lanza en tus proyectos."""
+    projects_root: Path = Field(default_factory=lambda: Path("~/Documents/proyectos"))
+    model: str | None = None  # None = el por defecto del CLI
+    max_concurrent: int = 3
+    timeout_s: float = 6 * 3600
+    idle_s: float = 30 * 60
+    skip_permissions: bool = True  # un run no tiene terminal para responder permisos; sin esto se colgaría
+
+
 class UIConfig(BaseModel):
     host: str = "127.0.0.1"
     port: int = 8765
@@ -166,6 +184,8 @@ class Config(BaseModel):
     stt: STTConfig = Field(default_factory=STTConfig)
     tts: TTSConfig = Field(default_factory=TTSConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
+    sessions: SessionsConfig = Field(default_factory=SessionsConfig)
+    runs: RunsConfig = Field(default_factory=RunsConfig)
     ui: UIConfig = Field(default_factory=UIConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
 
@@ -174,6 +194,9 @@ class Config(BaseModel):
         m = self.memory
         m.dir = m.dir.expanduser()
         m.runtime_dir = m.runtime_dir.expanduser()
+        self.runs.projects_root = self.runs.projects_root.expanduser()
+        if not self.runs.projects_root.is_dir():
+            self.runs.projects_root = Path("~").expanduser()
         t = self.tools
         t.workspace_dir = t.workspace_dir.expanduser()
         t.allowed_read_dirs = [p.expanduser() for p in t.allowed_read_dirs] or [t.workspace_dir]

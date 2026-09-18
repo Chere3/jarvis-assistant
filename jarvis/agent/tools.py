@@ -53,6 +53,11 @@ class TurnContext:
     tool_calls: list[dict[str, Any]] = field(default_factory=list)
     effects_executed: bool = False  # se ejecutó algo con efectos (no se reintenta el turno)
     ui_events: list[dict[str, Any]] = field(default_factory=list)
+    untrusted_source: str | None = None  # el turno leyó contenido no confiable (web, sesiones, pantalla…)
+
+    def taint(self, source: str) -> None:
+        if not self.untrusted_source:
+            self.untrusted_source = source
 
 
 @dataclass
@@ -64,6 +69,22 @@ class ToolSpec:
     approval: str  # never | always | policy
     handler: Callable[[dict[str, Any], TurnContext], Awaitable[ToolResult]]
     describe: Callable[[dict[str, Any]], str] | None = None
+    taints: str | None = None  # su resultado mete en el contexto texto escrito por otro (web, otra sesión…)
+    acting: bool = False       # actúa hacia fuera: se rechaza en un turno contaminado
+    precheck: Callable[[dict[str, Any]], str | None] | None = None  # motivo para no ejecutar, ANTES de pedir aprobación
+
+
+MEMORY_WRITERS = {"memory_save_note", "memory_update_preference", "memory_correct", "memory_forget"}
+
+
+def untrusted_refusal(tool: str, source: str | None, acting: bool) -> str | None:
+    """La puerta de contaminación: en un turno que leyó texto no confiable, nada actúa ni escribe memoria."""
+    if not source:
+        return None
+    if acting or tool in MEMORY_WRITERS:
+        return (f"BLOQUEADO: en este turno se leyó contenido no confiable ({source}), así que «{tool}» no se ejecuta. "
+                "Dile al usuario qué querías hacer; si él lo pide de nuevo con sus palabras en un turno nuevo, se hará.")
+    return None
 
 
 def validate_args(schema: dict[str, Any], args: dict[str, Any]) -> dict[str, Any]:
@@ -140,6 +161,18 @@ class ToolRegistry:
         except ToolDenied as e:
             self._record(turn, name, args, "invalid", str(e))
             return ToolResult(False, f"argumentos inválidos: {e}")
+        refusal = untrusted_refusal(name, turn.untrusted_source, spec.acting)
+        if refusal:
+            self._record(turn, name, clean, "untrusted", turn.untrusted_source or "")
+            return ToolResult(False, refusal)
+        if spec.precheck:
+            try:
+                problem = spec.precheck(clean)
+            except Exception as e:
+                problem = f"no se pudo comprobar la acción: {type(e).__name__}"
+            if problem:
+                self._record(turn, name, clean, "precheck", problem[:200])
+                return ToolResult(False, problem)
         needs_approval = spec.approval == "always" or (spec.approval == "policy" and self._policy_requires_approval(name, clean))
         if needs_approval:
             desc = spec.describe(clean) if spec.describe else f"{name} {clean}"
@@ -171,6 +204,8 @@ class ToolRegistry:
             return ToolResult(False, f"la herramienta falló: {type(e).__name__}")
         if spec.effects != "read":
             turn.effects_executed = True
+        if spec.taints and res.ok:
+            turn.taint(spec.taints)
         self._record(turn, name, clean, "ok" if res.ok else "error", res.text[:200])
         return res
 
@@ -402,11 +437,12 @@ class ToolRegistry:
             return ToolResult(True, f"Vista «{a['view']}» solicitada en el panel" + (f" para {a.get('target')}" if a.get("target") else "") + ".")
 
         self._add(ToolSpec("ui_show",
-                           "Abre o actualiza una vista del panel: graph (global), local (vecinos de un recuerdo: target=id), "
-                           "trace (recuerdos usados en la última respuesta), memory (abrir un recuerdo: target=id), "
-                           "list (lista filtrable; filter_type opcional; target=proyecto opcional).",
+                           "Abre o actualiza una vista del panel nativo. Memoria: graph (global), local (vecinos de un recuerdo: "
+                           "target=id), trace (recuerdos usados en la última respuesta), memory (abrir un recuerdo: target=id), "
+                           "list (lista filtrable). Capataz: sessions, runs, specs (target=proyecto), projects, usage.",
                            {"type": "object", "properties": {
-                               "view": {"type": "string", "enum": ["graph", "local", "trace", "memory", "list"]},
+                               "view": {"type": "string", "enum": ["graph", "local", "trace", "memory", "list", "sessions",
+                                                                   "runs", "specs", "projects", "usage"]},
                                "target": {"type": "string", "maxLength": 120},
                                "depth": {"type": "integer"},
                                "filter_type": {"type": "string", "enum": list(MEMORY_TYPES)}},
@@ -535,12 +571,25 @@ class ToolRegistry:
             answers[q.get("question", "")] = ans
         return {"questions": questions, "answers": answers}
 
+    TAINTING_BUILTINS = {"WebFetch": "web", "WebSearch": "web"}
+
+    def note_builtin_taint(self, name: str, args: dict[str, Any]) -> None:
+        """Marca el turno si una herramienta integrada mete en el contexto texto de otro (web, transcripts de sesiones)."""
+        src = self.TAINTING_BUILTINS.get(name)
+        if not src and name in ("Read", "Grep", "Glob") and "/.claude/projects/" in str(args.get("file_path") or args.get("path") or ""):
+            src = "transcript de otra sesión"
+        if src:
+            self.turn.taint(src)
+
     async def gate_builtin(self, name: str, args: dict[str, Any], policy: str) -> bool | str:
         """Devuelve True (permitir) o un mensaje de denegación. Espera la aprobación del usuario cuando la política lo exige."""
         turn = self.turn
         if turn.cancelled:
             return "turno cancelado"
+        self.note_builtin_taint(name, args)
         needs = policy == "always" or (policy == "writes" and name not in self.READ_ONLY_BUILTINS)
+        if turn.untrusted_source and name not in self.READ_ONLY_BUILTINS:
+            needs = True  # turno contaminado: toda acción pasa por el usuario, aunque el modo automático la aprobara
         self._record(turn, name, args, "builtin", "auto" if not needs else "pending_approval")
         if not needs:
             return True

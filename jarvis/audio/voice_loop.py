@@ -192,6 +192,7 @@ async def run_listen(args: Any) -> int:
         except Exception as e:
             print(f"No se pudo conectar con Claude: {e}", flush=True)
             return 2
+    await app.start_services()
     vl = VoiceLoop(app, wake_enabled=not args.ptt_only)
     print("Cargando audio (modelo STT, detector de palabra clave)…", flush=True)
     await vl.start()
@@ -241,5 +242,6 @@ async def run_listen(args: Any) -> int:
         pass
     await vl.stop()
     loop_task.cancel()
+    await app.stop_services()
     await app.provider.stop()
     return 0

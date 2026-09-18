@@ -37,6 +37,7 @@ async def _chat(args: argparse.Namespace) -> int:
         except Exception as e:
             _print(f"No se pudo conectar con Claude: {e}\nEjecuta `jarvis doctor` para revisar la autenticación.")
             return 2
+    await app.start_services()
     _print(f"{name} listo. Sesión {orch.session_id}. Comandos: /salir /cancelar /aprobar <id> /rechazar <id> /estado /traza /memoria <id>")
     streaming_turn: dict[str, str | None] = {"id": None}
 
@@ -62,6 +63,7 @@ async def _chat(args: argparse.Namespace) -> int:
     if args.message:
         r = await orch.handle_text(args.message)
         _finish_line(r, streaming_turn, name)
+        await app.stop_services()
         await app.provider.stop()
         return 0
     task: asyncio.Task | None = None
@@ -102,6 +104,7 @@ async def _chat(args: argparse.Namespace) -> int:
         await task
     if task and not task.done():
         await orch.cancel("salida")
+    await app.stop_services()
     await app.provider.stop()
     _print("Hasta luego.")
     return 0
@@ -353,6 +356,9 @@ def main(argv: list[str] | None = None) -> int:
     ap_.add_argument("action", choices=["install", "build", "open", "uninstall"])
     ap_.add_argument("--open", action="store_true", help="abrir tras instalar")
 
+    se = sub.add_parser("sessions", help="lista las sesiones de Claude Code vivas en este Mac (sin Claude)")
+    se.add_argument("--json", action="store_true")
+
     la = sub.add_parser("launchagent", help="inicio automático en macOS (instalar/desinstalar explícitamente)")
     la.add_argument("action", choices=["install", "uninstall", "status"])
 
@@ -376,6 +382,21 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "app":
         from .runtime.macapp import run_app
         return run_app(args.action, open_after=args.open)
+    if args.cmd == "sessions":
+        from .sessions.watch import build_snapshot, session_to_dict, GONE
+        snap = build_snapshot()
+        if args.json:
+            _print(json.dumps([session_to_dict(x) for x in snap.sessions], ensure_ascii=False, indent=1))
+            return 0
+        from .sessions.watch import STATE_LABEL, age_phrase
+        import time as _t
+        for x in snap.sessions:
+            if x.state == GONE:
+                continue
+            age = age_phrase(_t.time() - x.since) if x.since else "?"
+            _print(f"{x.voice_name:40} {STATE_LABEL.get(x.state, x.state):20} {age:18} {(x.summary() or '')[:60]}")
+        _print(f"{len(snap.sessions)} conversaciones; te esperan: {len(snap.needing_you())}")
+        return 0
     if args.cmd == "launchagent":
         from .runtime.launchagent import run_launchagent
         return run_launchagent(args.action)

@@ -65,6 +65,7 @@ class AgentSDKProvider:
         self.sdk_session_id: str | None = None
         self._cancel_flag = False
         self._turn_lock = asyncio.Lock()
+        self.on_rate_limit: Callable[[Any], None] | None = None  # recibe el RateLimitInfo del CLI (uso de la suscripción)
 
     def _options(self):
         from claude_agent_sdk import ClaudeAgentOptions
@@ -88,6 +89,8 @@ class AgentSDKProvider:
             # Herramientas integradas de Claude Code. En modo "auto" el clasificador de Claude Code ya aprobó lo seguro:
             # todo lo que llega aquí es lo que él escaló, así que se pregunta siempre al usuario (resumen breve).
             policy = "always" if c.permission_mode == "auto" else c.builtin_approval
+            if registry.turn.untrusted_source and tool_name not in registry.READ_ONLY_BUILTINS:
+                policy = "always"
             decision = await registry.gate_builtin(tool_name, input_data, policy)
             if decision is True:
                 return PermissionResultAllow(updated_input=input_data)
@@ -106,9 +109,20 @@ class AgentSDKProvider:
                                                    "permissionDecisionReason": "comando potencialmente destructivo: requiere confirmación del usuario"}}
             return {}
 
+        async def taint_gate(input_data: dict, tool_use_id: Any, context: Any) -> dict:
+            """PreToolUse: en un turno contaminado (leyó web/sesiones), toda herramienta con efectos pide permiso al usuario;
+            las que contaminan (WebFetch, WebSearch, leer transcripts) marcan el turno aunque el modo auto las apruebe."""
+            name = str(input_data.get("tool_name") or "")
+            args = input_data.get("tool_input") or {}
+            registry.note_builtin_taint(name, args if isinstance(args, dict) else {})
+            if registry.turn.untrusted_source and name not in registry.READ_ONLY_BUILTINS and not name.startswith("mcp__"):
+                return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "ask",
+                                               "permissionDecisionReason": f"este turno leyó contenido no confiable ({registry.turn.untrusted_source}); requiere confirmación del usuario"}}
+            return {}
+
         kwargs: dict[str, Any] = dict(
             system_prompt=self.system_prompt,
-            hooks={"PreToolUse": [HookMatcher(matcher="Bash", hooks=[guardrail])]},
+            hooks={"PreToolUse": [HookMatcher(matcher="Bash", hooks=[guardrail]), HookMatcher(matcher=None, hooks=[taint_gate])]},
             allowed_tools=[],  # nada preaprobado: cada llamada pasa por can_use_tool
             permission_mode=c.permission_mode if c.builtin_tools else "default",
             can_use_tool=can_use_tool,
@@ -199,6 +213,10 @@ class AgentSDKProvider:
     async def _run_once(self, req: AgentRequest, turn: TurnContext, on_event: OnEvent) -> AgentResponse:
         from claude_agent_sdk import AssistantMessage, ResultMessage, StreamEvent, TextBlock, ToolUseBlock
         from claude_agent_sdk import CLIConnectionError, ProcessError, CLIJSONDecodeError
+        try:
+            from claude_agent_sdk import RateLimitEvent
+        except ImportError:  # pragma: no cover
+            RateLimitEvent = None  # type: ignore
 
         if not self.client or not self.connected:
             try:
@@ -247,6 +265,12 @@ class AgentSDKProvider:
                             on_event("tool_use", {"turn_id": req.turn_id, "name": b.name.replace("mcp__jarvis__", "")})
                     if msg.error:
                         resp.error = f"error del modelo: {msg.error}"
+                elif RateLimitEvent is not None and isinstance(msg, RateLimitEvent):
+                    if self.on_rate_limit:
+                        try:
+                            self.on_rate_limit(msg.rate_limit_info)
+                        except Exception:
+                            pass
                 elif isinstance(msg, ResultMessage):
                     resp.cost_usd = msg.total_cost_usd
                     resp.usage = msg.usage

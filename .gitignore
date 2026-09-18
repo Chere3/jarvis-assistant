@@ -5,3 +5,5 @@ data/
 runtime/
 .pytest_cache/
 *.log
+macapp/JarvisApp/.build/
+macapp/dist/
