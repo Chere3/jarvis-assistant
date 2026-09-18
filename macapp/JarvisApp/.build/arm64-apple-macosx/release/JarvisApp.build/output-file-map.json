@@ -1,0 +1,37 @@
+{
+  "": {
+    "dependencies": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/JarvisApp.d",
+    "object": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/JarvisApp.o",
+    "swift-dependencies": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/master.swiftdeps"
+  },
+  "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/AppDelegate.swift": {
+    "object": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/AppDelegate.swift.o",
+    "swiftmodule": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/AppDelegate~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/AppDelegate.swiftdeps",
+    "diagnostics": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/AppDelegate.dia"
+  },
+  "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/Backend.swift": {
+    "object": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/Backend.swift.o",
+    "swiftmodule": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/Backend~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/Backend.swiftdeps",
+    "diagnostics": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/Backend.dia"
+  },
+  "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/HotKey.swift": {
+    "object": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/HotKey.swift.o",
+    "swiftmodule": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/HotKey~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/HotKey.swiftdeps",
+    "diagnostics": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/HotKey.dia"
+  },
+  "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/OrbView.swift": {
+    "object": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/OrbView.swift.o",
+    "swiftmodule": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/OrbView~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/OrbView.swiftdeps",
+    "diagnostics": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/OrbView.dia"
+  },
+  "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/main.swift": {
+    "object": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/main.swift.o",
+    "swiftmodule": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/main.swiftdeps",
+    "diagnostics": "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/main.dia"
+  }
+}

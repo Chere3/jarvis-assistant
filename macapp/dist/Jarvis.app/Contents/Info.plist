@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>CFBundleName</key><string>Jarvis</string>
+  <key>CFBundleDisplayName</key><string>Jarvis</string>
+  <key>CFBundleIdentifier</key><string>com.diego.jarvis-assistant</string>
+  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleShortVersionString</key><string>0.1.0</string>
+  <key>CFBundleExecutable</key><string>Jarvis</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
+  <key>LSMinimumSystemVersion</key><string>14.0</string>
+  <key>LSUIElement</key><true/>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSMicrophoneUsageDescription</key><string>Jarvis escucha la palabra de activación y tus peticiones por voz. El audio se procesa localmente.</string>
+  <key>NSAppleEventsUsageDescription</key><string>Jarvis puede abrir apps y carpetas cuando se lo pides.</string>
+</dict></plist>

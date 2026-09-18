@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="jarvis-token" content="__TOKEN__">
+<title>__NAME__ — panel</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="topbar" role="banner">
+  <div class="brand"><span id="assistantName">__NAME__</span> <span class="muted small">panel local</span></div>
+  <div class="status" aria-live="polite">
+    <span id="statePill" class="pill">IDLE</span>
+    <span id="claudePill" class="pill" title="Conexión con Claude">Claude: …</span>
+    <span id="voicePill" class="pill" title="Detector de palabra clave">voz: …</span>
+    <span id="memPill" class="pill" title="Recuerdos vigentes">memoria: …</span>
+  </div>
+  <div class="actions">
+    <button id="btnListen" class="btn" aria-pressed="false" title="Activar o desactivar la escucha por palabra clave">Escucha</button>
+    <button id="btnPtt" class="btn accent" title="Pulsar para hablar (captura hasta el silencio)">🎤 Hablar</button>
+    <button id="btnStop" class="btn danger" title="Detener la respuesta o la voz (Esc)">■ Detener</button>
+    <button id="btnTheme" class="btn ghost" aria-label="Cambiar tema claro/oscuro">☾/☀</button>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="chat" aria-label="Conversación">
+    <div id="messages" class="messages" role="log" aria-live="polite" aria-relevant="additions"></div>
+    <div id="approvals" class="approvals" aria-live="assertive"></div>
+    <form id="chatForm" class="chatform" autocomplete="off">
+      <label class="sr-only" for="chatInput">Escribe una petición</label>
+      <input id="chatInput" type="text" placeholder="Escribe aquí (Enter para enviar) · «/» busca en memoria" required>
+      <button class="btn accent" type="submit">Enviar</button>
+    </form>
+  </section>
+
+  <section class="side" aria-label="Memoria y configuración">
+    <nav class="tabs" role="tablist">
+      <button role="tab" class="tab active" data-tab="memory" aria-selected="true">Memoria</button>
+      <button role="tab" class="tab" data-tab="traces">Trazas</button>
+      <button role="tab" class="tab" data-tab="journal">Historial</button>
+      <button role="tab" class="tab" data-tab="config">Configuración</button>
+    </nav>
+
+    <div id="tab-memory" class="tabpanel" role="tabpanel">
+      <div class="toolbar">
+        <label class="sr-only" for="searchInput">Buscar recuerdos</label>
+        <input id="searchInput" type="search" placeholder="Buscar por título, alias o contenido…" aria-controls="searchResults">
+        <div class="viewmodes" role="group" aria-label="Vista">
+          <button class="btn small vm active" data-view="global">Global</button>
+          <button class="btn small vm" data-view="local">Local</button>
+          <button class="btn small vm" data-view="trace">Respuesta</button>
+          <button class="btn small vm" data-view="list">Lista</button>
+        </div>
+      </div>
+      <div id="searchResults" class="results" role="listbox" aria-label="Resultados"></div>
+      <details class="filters">
+        <summary>Filtros</summary>
+        <div class="filtergrid">
+          <label>Tipo <select id="fType"><option value="">todos</option></select></label>
+          <label>Proyecto <select id="fProject"><option value="">todos</option></select></label>
+          <label>Relación <select id="fRelation"><option value="">todas</option>
+            <option>pertenece_a</option><option>relacionado_con</option><option>menciona</option><option>fundamentado_en</option>
+            <option>decidido_para</option><option>reemplaza</option><option>contradice</option></select></label>
+          <label>Etiqueta <input id="fTag" type="text" placeholder="etiqueta"></label>
+          <label>Desde <input id="fDate" type="date"></label>
+          <label><input id="fHidden" type="checkbox"> mostrar reemplazados/archivados</label>
+          <label><input id="fSources" type="checkbox"> solo con fuentes</label>
+          <label><input id="fOrphans" type="checkbox"> solo sin conexiones</label>
+          <label><input id="fShowSources" type="checkbox" checked> nodos de fuentes</label>
+          <label>Profundidad local <input id="fDepth" type="number" min="1" max="3" value="1" style="width:4em"></label>
+          <label>Máx. nodos <input id="fMax" type="number" min="5" max="500" value="60" style="width:5em"></label>
+        </div>
+      </details>
+      <div class="graphwrap">
+        <div id="graph" class="graph" tabindex="0" aria-label="Grafo de recuerdos (hay una vista de lista equivalente)"></div>
+        <div class="graphcontrols" role="group" aria-label="Controles del grafo">
+          <button class="btn small" id="gFit" title="Ajustar a pantalla">⤢</button>
+          <button class="btn small" id="gCenter" title="Centrar selección">◎</button>
+          <button class="btn small" id="gPause" title="Pausar/continuar movimiento" aria-pressed="false">❚❚</button>
+          <button class="btn small" id="gReset" title="Restablecer vista">↺</button>
+          <button class="btn small" id="gLayoutReset" title="Olvidar posiciones guardadas">✕ layout</button>
+        </div>
+        <div id="graphNote" class="graphnote" aria-live="polite"></div>
+        <details class="legend"><summary>Leyenda</summary><div id="legend"></div>
+          <p class="muted small">El tamaño del punto crece con el número de conexiones (limitado). La distancia entre puntos es solo el layout visual, no una medida de similitud ni de certeza. Las líneas discontinuas son relaciones sugeridas por el modelo (no confirmadas); las punteadas finas, referencias a fuentes.</p>
+        </details>
+      </div>
+      <div id="listView" class="listview" hidden>
+        <p class="muted small">Navega con ↑/↓ y abre con Enter.</p>
+        <ul id="memList" role="listbox" aria-label="Lista de recuerdos" tabindex="0"></ul>
+      </div>
+    </div>
+
+    <div id="tab-traces" class="tabpanel" role="tabpanel" hidden>
+      <p class="muted small">Recuerdos realmente recuperados en cada respuesta (traza real, no reconstruida). Los citados aparecen marcados.</p>
+      <ul id="traceList" class="plainlist"></ul>
+    </div>
+    <div id="tab-journal" class="tabpanel" role="tabpanel" hidden>
+      <div class="toolbar"><button class="btn small" id="btnLint">Ejecutar lint</button><button class="btn small" id="btnRebuild">Reconstruir índice</button></div>
+      <div id="lintOut" class="lintout"></div>
+      <ul id="journalList" class="plainlist"></ul>
+    </div>
+    <div id="tab-config" class="tabpanel" role="tabpanel" hidden>
+      <form id="configForm" class="configform">
+        <label>Nombre visible <input name="assistant.display_name" type="text"></label>
+        <p class="note">Cambiar el nombre no cambia la palabra de activación acústica: <span id="wakeInfo"></span></p>
+        <label>Sensibilidad del detector (0–1) <input name="wake_word.sensitivity" type="number" step="0.05" min="0" max="1"></label>
+        <label>Voz (TTS) <select name="tts.voice"></select></label>
+        <label>Velocidad de voz <input name="tts.rate" type="number" min="90" max="400"></label>
+        <label><input name="tts.enabled" type="checkbox"> Respuestas habladas</label>
+        <label>Micrófono <select name="audio.input_device"><option value="">por defecto</option></select></label>
+        <label>Silencio de cierre (ms) <input name="audio.end_silence_ms" type="number" min="300" max="3000" step="100"></label>
+        <label><input name="memory.auto_save_preferences" type="checkbox"> Guardar preferencias automáticamente</label>
+        <label><input name="memory.save_conversation_summaries" type="checkbox"> Resúmenes mínimos de conversación</label>
+        <button class="btn accent" type="submit">Guardar</button>
+      </form>
+      <div id="configOut" class="note" aria-live="polite"></div>
+      <h3>Estado técnico</h3>
+      <pre id="techState" class="small"></pre>
+    </div>
+  </section>
+</main>
+
+<aside id="reader" class="reader" hidden aria-label="Recuerdo" role="dialog" aria-modal="false">
+  <div class="readerhead">
+    <div><span id="rType" class="pill"></span> <span id="rStatus" class="pill"></span> <span id="rProv" class="pill"></span></div>
+    <button id="rClose" class="btn ghost" aria-label="Cerrar panel (Esc)">✕</button>
+  </div>
+  <h2 id="rTitle"></h2>
+  <div class="muted small" id="rDates"></div>
+  <div class="readeractions">
+    <button class="btn small" id="rAsk">Preguntar sobre este recuerdo</button>
+    <button class="btn small" id="rLocal">Ver conexiones</button>
+    <button class="btn small" id="rCorrect">Corregir</button>
+    <button class="btn small" id="rSource">Ver fuente</button>
+    <button class="btn small danger" id="rForget">Olvidar</button>
+  </div>
+  <article id="rBody" class="mdbody"></article>
+  <section><h3>Fuentes</h3><ul id="rSources" class="plainlist"></ul></section>
+  <section><h3>Relacionados</h3><ul id="rRelated" class="plainlist"></ul></section>
+  <section><h3>Historial de modificaciones</h3><ul id="rJournal" class="plainlist small"></ul></section>
+  <div id="rDialog" class="dialog" hidden></div>
+</aside>
+
+<script src="/static/vendor/force-graph.min.js"></script>
+<script src="/static/vendor/marked.min.js"></script>
+<script src="/static/vendor/purify.min.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

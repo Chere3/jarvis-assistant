@@ -1,0 +1,76 @@
+# Configuración de ejemplo de JARVIS. Copia a ~/.jarvis/config.yaml (o `jarvis config init`).
+# NUNCA pongas secretos aquí. Claude se usa a través de la sesión de Claude Code (claude.ai), nunca por API.
+# PICOVOICE_ACCESS_KEY (opcional, Porcupine) se lee del entorno.
+assistant:
+  display_name: Jarvis          # nombre visible; NO cambia el modelo acústico de activación
+  language: es
+  timezone: America/Mexico_City # se detecta del sistema si se omite
+claude:
+  provider: agent_sdk           # agent_sdk = Claude Code (sesión claude.ai, sin API) | fake (solo demo/pruebas)
+  model: null                   # null = modelo por defecto del CLI de Claude Code; valida con `jarvis doctor --live`
+  builtin_tools: true           # todas las herramientas de Claude Code (Bash, Read, Write, Edit, Glob, Grep, Web…)
+  permission_mode: auto         # auto = clasificador interno de Claude Code decide y solo escala lo dudoso · default = builtin_approval
+  builtin_approval: writes      # (solo con permission_mode: default) writes | always | never
+  # always_confirm_patterns: [...]  # regex de comandos que SIEMPRE piden permiso aunque el modo auto los aprobara (ver README)
+  cwd: null                     # directorio de trabajo del agente (null = carpeta personal)
+  setting_sources: []           # no hereda CLAUDE.md ni settings de tu entorno de desarrollo
+  effort: low                   # asistente de voz: rapidez; sube a medium/high para tareas complejas
+  max_turns: 8                  # límite de turnos de herramientas por petición
+  timeout_s: 180
+  max_budget_usd_per_turn: null
+  retries: 1                    # solo errores transitorios y solo si no se ejecutó nada con efectos
+memory:
+  dir: ~/.jarvis/data/memory
+  runtime_dir: ~/.jarvis/data/runtime
+  auto_save_preferences: true
+  save_conversation_summaries: false
+  context_budget_chars: 12000
+  max_pages: 8
+  link_expansion: 4
+  max_source_bytes: 5000000
+wake_word:
+  provider: openwakeword        # openwakeword | porcupine | none (solo pulsar-para-hablar)
+  keyword_label: Hey Jarvis     # etiqueta informativa de la palabra que detecta el modelo
+  model_path: hey_jarvis        # nombre integrado (openwakeword) o ruta a .onnx / .ppn
+  language: en                  # el modelo hey_jarvis es inglés; funciona con pronunciación aproximada en español
+  sensitivity: 0.5
+  cooldown_s: 2.0
+  min_consecutive_frames: 1
+audio:
+  input_device: null            # nombre o índice (ver `jarvis doctor`)
+  output_device: null
+  sample_rate: 16000
+  frame_ms: 80
+  preroll_ms: 600               # búfer circular en RAM, nunca se guarda
+  max_utterance_s: 15
+  end_silence_ms: 900
+  min_speech_ms: 300
+  vad_aggressiveness: 2
+  follow_up_window_s: 0         # >0 abre una ventana de seguimiento tras responder
+stt:
+  provider: mlx_whisper         # mlx_whisper (GPU Apple Silicon, recomendado) | faster_whisper (CPU) | none
+  model: mlx-community/whisper-large-v3-turbo   # faster_whisper: tiny | base | small | medium | large-v3-turbo
+  initial_prompt: Petición en español a un asistente llamado Jarvis.
+  compute_type: int8
+  language: es
+  beam_size: 3
+tts:
+  provider: kokoro              # kokoro (neuronal local, realista) | macos_say | none
+  voice: ef_dora                # kokoro: ef_dora (fem.) | em_alex | em_santa (masc.) · macos_say: Paulina | Mónica
+  speed: 1.0                    # solo kokoro
+  rate: 175                     # solo macos_say
+  enabled: true
+tools:
+  workspace_dir: ~/.jarvis/workspace
+  allowed_read_dirs: []         # vacío = solo el workspace
+  allowed_open_dirs: []         # vacío = solo el workspace
+  allowed_url_schemes: [https]
+  url_requires_approval: true
+  approval_ttl_s: 120
+ui:
+  host: 127.0.0.1               # solo loopback
+  port: 8765
+logging:
+  level: INFO
+  dir: ~/.jarvis/data/runtime/logs
+  log_retrieval: true           # registra ids recuperados y tamaño del contexto, no el contenido

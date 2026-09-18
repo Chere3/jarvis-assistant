@@ -1,0 +1,295 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.JarvisApp-arm64-apple-macosx26.0-release.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/sources",
+      "importPath" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/AppDelegate.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/Backend.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/HotKey.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/OrbView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/main.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "JarvisApp",
+      "moduleOutputPath" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/Modules/JarvisApp.swiftmodule",
+      "objects" : [
+        "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/AppDelegate.swift.o",
+        "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/Backend.swift.o",
+        "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/HotKey.swift.o",
+        "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/OrbView.swift.o",
+        "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/main.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-whole-module-optimization",
+        "-num-threads",
+        "10",
+        "-serialize-diagnostics",
+        "-O",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "JarvisApp_main",
+        "-swift-version",
+        "5",
+        "-I",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-L",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-plugin-path",
+        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "jarvisapp"
+      ],
+      "outputFileMapPath" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/AppDelegate.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/Backend.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/HotKey.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/OrbView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/main.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/Modules/JarvisApp.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/AppDelegate.swift",
+        "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/Backend.swift",
+        "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/HotKey.swift",
+        "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/OrbView.swift",
+        "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/main.swift"
+      ],
+      "tempsPath" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build",
+      "wholeModuleOptimization" : true
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "JarvisApp" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "JarvisApp",
+      "-package-name",
+      "jarvisapp",
+      "-c",
+      "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/AppDelegate.swift",
+      "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/Backend.swift",
+      "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/HotKey.swift",
+      "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/OrbView.swift",
+      "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/main.swift",
+      "-I",
+      "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-whole-module-optimization",
+      "-num-threads",
+      "10",
+      "-serialize-diagnostics",
+      "-O",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "JarvisApp_main",
+      "-swift-version",
+      "5",
+      "-I",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-L",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-plugin-path",
+      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "jarvisapp",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "JarvisApp" : [
+
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/AppDelegate.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/Backend.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/HotKey.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/OrbView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/Sources/JarvisApp/main.swift"
+        }
+      ],
+      "outputFilePath" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/sources"
+    },
+    "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/AppDelegate.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/Backend.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/HotKey.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/OrbView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.build/main.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/JarvisApp.product/Objects.LinkFileList"
+    },
+    "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Volumes/macexternal/DiegoBackup/Documents/proyectos/jarvis/macapp/JarvisApp/.build/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+    }
+  }
+}
