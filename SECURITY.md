@@ -1,7 +1,7 @@
-# Política de seguridad
+# Security Policy
 
-Jarvis ejecuta herramientas locales y tiene acceso a tu Mac. Si encuentras una vulnerabilidad (escape del gate de permisos, ejecución no autorizada, filtración de datos de memoria), **no abras un issue público**.
+Jarvis runs local tools and has access to your Mac. If you find a vulnerability (escaping the permission gate, unauthorized execution, leaking memory data), **do not open a public issue**.
 
-Escribe en privado usando el aviso de seguridad de GitHub (Security → Report a vulnerability) en este repositorio.
+Report it privately through GitHub's security advisories (Security → Report a vulnerability) on this repository.
 
-Se responde en un plazo razonable y se acredita al reportante salvo que prefiera lo contrario.
+You will get a reply within a reasonable time, and reporters are credited unless they prefer otherwise.

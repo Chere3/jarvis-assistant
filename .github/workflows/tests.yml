@@ -9,10 +9,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - name: Instalar dependencias
+      - name: Install dependencies
         run: |
           uv venv --python 3.12 .venv
           uv sync --extra dev
           uv pip install -e .
-      - name: Ejecutar pruebas
+      - name: Run tests
         run: uv run pytest -q

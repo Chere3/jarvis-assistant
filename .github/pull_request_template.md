@@ -1,13 +1,13 @@
-## Qué cambia
+## What changes
 
-<!-- Resumen en una o dos frases -->
+<!-- One or two sentence summary -->
 
-## Por qué
+## Why
 
-<!-- Issue relacionado, contexto -->
+<!-- Related issue, context -->
 
-## Comprobaciones
+## Checks
 
-- [ ] `pytest` pasa en local
-- [ ] No añade claves, tokens ni datos personales
-- [ ] Documentación actualizada si el cambio lo requiere
+- [ ] `pytest` passes locally
+- [ ] No keys, tokens or personal data added
+- [ ] Documentation updated if the change requires it

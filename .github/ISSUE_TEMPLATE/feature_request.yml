@@ -1,16 +1,16 @@
-name: Propuesta de mejora
-description: Una idea para Jarvis
+name: Feature request
+description: An idea for Jarvis
 labels: ["enhancement"]
 body:
   - type: textarea
     id: problema
     attributes:
-      label: Qué problema resuelve
+      label: What problem it solves
     validations:
       required: true
   - type: textarea
     id: propuesta
     attributes:
-      label: Propuesta
+      label: Proposal
     validations:
       required: true

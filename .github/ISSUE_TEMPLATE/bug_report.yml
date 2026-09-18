@@ -1,18 +1,18 @@
-name: Reporte de error
-description: Algo no funciona como debería
+name: Bug report
+description: Something is not working as it should
 labels: ["bug"]
 body:
   - type: textarea
     id: que-paso
     attributes:
-      label: Qué pasó
-      description: Describe el comportamiento observado y el esperado.
+      label: What happened
+      description: Describe the observed behavior and the expected one.
     validations:
       required: true
   - type: textarea
     id: pasos
     attributes:
-      label: Pasos para reproducir
+      label: Steps to reproduce
       placeholder: |
         1. ...
         2. ...
@@ -21,7 +21,7 @@ body:
   - type: textarea
     id: entorno
     attributes:
-      label: Entorno
-      description: Salida de `jarvis doctor`, versión de macOS y chip.
+      label: Environment
+      description: Output of `jarvis doctor`, macOS version and chip.
     validations:
       required: true
