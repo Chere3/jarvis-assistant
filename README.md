@@ -152,6 +152,7 @@ Spanish voices: `ef_dora` (female, default), `em_alex` and `em_santa` (male). Li
 `jarvis tts say --voice em_alex "Hola, soy Jarvis"` or the files in `~/Desktop/jarvis-muestras-voz/`. Change it with
 `jarvis config set tts.voice em_alex`; speed with `tts.speed`. Without the model downloaded it falls back to the system
 voice (and automatically prefers "Premium/Enhanced" voices if you install them in Settings → Accessibility → Spoken Content).
+See [docs/tts-voices.md](docs/tts-voices.md) for a comprehensive guide on listing, previewing, and configuring voices.
 
 ## Usage
 
