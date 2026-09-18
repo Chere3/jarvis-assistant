@@ -13,10 +13,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     var assistantName = "Jarvis"
     var pendingApproval: [String: Any]?
     let positionKey = "orbPosition"
+    var dashboard: DashboardWindowController!
+    var dashboardModel: DashboardModel!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupOrb()
         setupStatusItem()
+        dashboardModel = DashboardModel(api: API(backend: backend))
+        dashboard = DashboardWindowController(model: dashboardModel)
         hotkey = HotKey()
         hotkey?.action = { [weak self] in self?.primaryAction() }
         backend.onLog = { [weak self] line in
@@ -93,7 +97,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             m.addItem(withTitle: "Rechazar (\(id))", action: #selector(reject), keyEquivalent: "")
         }
         m.addItem(.separator())
-        m.addItem(withTitle: "Abrir panel completo (memoria, grafo)", action: #selector(openPanel), keyEquivalent: "")
+        m.addItem(withTitle: "Abrir panel (sesiones, runs, specs, memoria)", action: #selector(openPanel), keyEquivalent: "p")
+        m.addItem(withTitle: "Panel web (grafo de memoria)", action: #selector(openWebPanel), keyEquivalent: "")
         m.addItem(withTitle: "Ocultar/mostrar orbe", action: #selector(toggleOrb), keyEquivalent: "")
         m.addItem(withTitle: "Reiniciar backend", action: #selector(restartBackend), keyEquivalent: "")
         m.addItem(withTitle: "Ver registro del backend", action: #selector(showLog), keyEquivalent: "")
@@ -127,7 +132,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         backend.request("/api/approvals/\(id)/approve", method: "POST", body: ["args_hash": ap["args_hash"] ?? ""]) }
     @objc func reject() { guard let ap = pendingApproval, let id = ap["id"] as? String else { return }
         backend.request("/api/approvals/\(id)/reject", method: "POST") }
-    @objc func openPanel() { if let u = backend.panelURL { NSWorkspace.shared.open(u) } }
+    @objc func openPanel() { dashboard.show() }
+    @objc func openWebPanel() { if let u = backend.panelURL { NSWorkspace.shared.open(u) } }
     @objc func toggleOrb() { if orbWindow.isVisible { orbWindow.orderOut(nil); bubble.orderOut(nil) } else { orbWindow.orderFrontRegardless() } }
     @objc func restartBackend() { backend.stop(); DispatchQueue.main.asyncAfter(deadline: .now() + 1) { _ = self.backend.start() } }
     @objc func showLog() {
@@ -142,7 +148,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func handle(_ ev: [String: Any]) {
         guard let kind = ev["kind"] as? String else { return }
         defer { refreshConversation() }
+        MainActor.assumeIsolated { dashboardModel.handle(ev) }  // los eventos llegan ya en el hilo principal (EventStream)
         switch kind {
+        case "announce":
+            if let t = ev["text"] as? String { bubble.show("\(assistantName): " + t, near: orbWindow, seconds: 25) }
+        case "ui.show":
+            let view = ev["view"] as? String ?? "memory"
+            MainActor.assumeIsolated { dashboardModel.show(view: view, target: ev["target"] as? String, path: ev["path"] as? String) }
+            dashboard.show()
         case "hello":
             if let st = ev["state"] as? [String: Any] {
                 setState(st["state"] as? String ?? "IDLE")

@@ -435,6 +435,12 @@ class DocIn(BaseModel):
     path: str
 
 
+class ShowIn(BaseModel):
+    view: str = "sessions"
+    target: str | None = None
+    path: str | None = None
+
+
 class SectionIn(BaseModel):
     project: str
     path: str
@@ -605,6 +611,12 @@ def register_foreman_api(web: FastAPI, app: Any, fm: Any) -> None:
     async def announcements(limit: int = 50):
         return {"items": await asyncio.to_thread(fm.store.list_announcements, max(1, min(limit, 200))),
                 "steers": await asyncio.to_thread(fm.store.list_steers, 30)}
+
+    @web.post("/api/ui/show")
+    async def ui_show(body: ShowIn):
+        """Abre una vista del panel nativo (la app escucha `ui.show` por SSE)."""
+        app.bus.publish("ui.show", view=body.view, target=body.target, path=body.path, turn_id=None)
+        return {"ok": True}
 
     @web.get("/api/foreman")
     async def foreman_state():

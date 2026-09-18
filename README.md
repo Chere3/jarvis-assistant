@@ -63,6 +63,56 @@ hablando («la papelera», «la segunda», «no») o con los botones del panel.
 **Cambiar de modelo hablando**: «cambia a sonnet», «usa opus», «¿qué modelo usas?». Alias: opus, sonnet, haiku, fable, o un id
 `claude-*`. El cambio aplica al siguiente turno y se guarda en la configuración. Verificado en vivo (opus → sonnet).
 
+## Capataz de Claude Code (sesiones, runs, construcciones)
+
+Además de asistente personal, Jarvis vigila **todas las sesiones de Claude Code de tu Mac** y dirige trabajo real:
+
+- **Ve tus sesiones.** Lee el roster del CLI (`~/.claude/sessions/*.json`) y la cola de cada transcript una vez por segundo.
+  Cuenta conversaciones, no procesos, y les da nombres hablables («pingou», «proyectos, la de itinerario»,
+  «la sonda más nueva»). Pregunta «¿qué sesiones hay?», «¿cuál me espera?», «¿dónde se quedó pingou?».
+  Sin Claude: `jarvis sessions`.
+- **Te avisa solo.** Cuando una sesión se detiene esperándote (permiso, diálogo, pregunta) lo dice en voz alta al momento;
+  cuando una termina de trabajar lo agrupa en una frase en la siguiente pausa. Si no puede hablar, manda una notificación
+  nativa de macOS. Nunca te recita al arrancar lo que ya estaba abierto. Ajustes en `sessions.*` de la configuración.
+- **Contesta por ti.** «Dile a pingou que use Postgres» → escribe en el socket de entrada de esa sesión (llega como un
+  turno nuevo). Un prompt de permisos no se resuelve con texto: «pulsa Intro en sonda» envía UNA tecla (Intro, Escape o
+  1-9) a la pestaña de Terminal.app que tiene ese tty; requiere permiso de Accesibilidad para Jarvis.app y no funciona
+  con sesiones en otras terminales (lo dice en vez de adivinar).
+- **Lanza runs.** «Lanza en sonda: arregla el typo del README» crea un `claude -p` desatendido en la carpeta del
+  proyecto, registrado en SQLite (`data/runtime/runs.sqlite`) con prompt, estado, tokens y todo el flujo de eventos. Todo run
+  llega a un estado terminal; los fallos se anuncian al instante y los éxitos en la siguiente pausa. Un run que «terminó»
+  sin cambiar nada o preguntando algo se anuncia como lo que es.
+- **Construye proyectos.** El brainstorm es la fase de diseño: una pregunta cada vez, dos o tres enfoques. Lo acordado se
+  escribe en el proyecto (`docs/specs/AAAA-MM-DD-<tema>-diseno.md`) por secciones numeradas; las revisas por número
+  («cambia la tres») y las apruebas de viva voz. Con la spec aprobada, `start_build` entrega a una sesión larga el proceso
+  completo: plan por fases en `docs/plans/`, revisión del plan contra la spec, ejecución tarea a tarea con pruebas primero y
+  casillas que se marcan. «¿Cómo va sonda?» se responde leyendo esas casillas.
+- **Uso de la suscripción.** Las ventanas de 5 horas y 7 días que informa el CLI durante cada turno («¿cómo voy de límites?»).
+- **Seguridad de datos ajenos.** Lo que devuelve la web, la pantalla, un run o el transcript de otra sesión es dato, no
+  instrucción: en un turno que leyó algo de eso, las herramientas que actúan (escribir a sesiones, pulsar teclas, lanzar
+  runs, escribir memoria) quedan bloqueadas y toda herramienta integrada con efectos pide tu permiso aunque el modo
+  automático la aprobara. Lo pides de nuevo con tus palabras en un turno nuevo y se hace.
+
+Los runs corren con `--dangerously-skip-permissions` (no tienen terminal para responder) en la carpeta que indiques, sin
+`ANTHROPIC_*` en su entorno: son procesos con tus privilegios, como los que lanzarías a mano. `runs.projects_root`
+(por defecto `~/Documents/proyectos`) es donde `create_project` crea proyectos nuevos y donde se buscan por nombre.
+
+## Panel nativo
+
+Desde el menú del orbe («Abrir panel», ⌘P en el menú) o cuando Jarvis lo abre solo (`ui_show`). Sin navegador:
+
+| Pestaña | Qué muestra |
+|---|---|
+| Sesiones | Todas las conversaciones por proyecto, las que te esperan arriba en rojo con el motivo y desde cuándo; detalle con última petición, último mensaje, herramientas, subagentes y los últimos mensajes; enviar un mensaje o pulsar una tecla en Terminal. |
+| Runs | Necesitan atención · activos · historial; detalle con modelo, tokens, prompt, resultado y transcripción en vivo; cancelar; lanzar un run nuevo. |
+| Specs | Documentos (specs y planes) por proyecto con estado de aprobación y progreso; secciones numeradas grandes, editar una sección, aprobar, construir. |
+| Proyectos | Carpeta de proyectos + sesiones + runs con su estado; detalle con tareas del plan, conversaciones y runs. |
+| Uso | Medidores de las ventanas de 5 h y 7 días, cuándo se reinician y los runs del día. |
+| Memoria | Búsqueda, lista y lector de recuerdos con fuentes, relaciones y enlaces inversos. |
+| Avisos | Lo que Jarvis dijo por su cuenta (y por qué canal) y los mensajes enviados a sesiones. |
+
+El panel web de `jarvis serve` sigue existiendo para el grafo de memoria («Panel web» en el menú).
+
 ## Transcripción (voz a texto)
 
 Por defecto `stt.provider: mlx_whisper` con `mlx-community/whisper-large-v3-turbo`: corre en la GPU de Apple Silicon, así que
@@ -91,7 +141,8 @@ Voces en español: `ef_dora` (femenina, por defecto), `em_alex` y `em_santa` (ma
 | `jarvis doctor [--live]` | Diagnóstico sin exponer secretos. |
 | `jarvis config show|init|set clave valor` | Configuración validada. |
 | `jarvis memory search|list|show|ingest|lint|rebuild|forget|export|stats|wipe` | Operaciones sobre la memoria. `ingest ruta --extract` extrae recuerdos con Claude citando fragmentos. `lint --semantic` añade revisión con Claude (explícita, con presupuesto). |
-| `jarvis app install|build|open|uninstall` | App nativa flotante (orbe + barra de menús + ⌥Espacio). |
+| `jarvis app install|build|open|uninstall` | App nativa flotante (orbe + barra de menús + ⌥Espacio + panel nativo). |
+| `jarvis sessions [--json]` | Lista las sesiones de Claude Code vivas en este Mac, con nombre hablable, estado y edad. |
 | `jarvis tts download|voices|say` | Voz neuronal: descargar modelo, listar voces, probar. |
 | `jarvis launchagent install|uninstall|status` | Inicio automático opcional (LaunchAgent). Nunca se activa solo. |
 | `--demo` | Proveedor simulado claramente identificado; el modo normal nunca inventa respuestas si falta autenticación. |
@@ -197,7 +248,7 @@ Demostración con recuerdos de prueba separados de tu memoria: `JARVIS_HOME=/tmp
 
 ## Pruebas
 
-`python -m pytest` (38 pruebas, ~18 s; las de audio usan fixtures sintéticos generados con `scripts/make_fixtures.sh`).
+`python -m pytest` (87 pruebas, ~20 s; los runs se prueban con un `claude` falso, nunca se lanza el real; las de audio usan fixtures sintéticos generados con `scripts/make_fixtures.sh`).
 Evaluación de memoria con Claude real: `python scripts/memory_eval.py`. Prueba acústica altavoz→micrófono: `python scripts/acoustic_test.py`.
 Resultados reales en `docs/test-results.md` y `docs/memory-eval.md`.
 
