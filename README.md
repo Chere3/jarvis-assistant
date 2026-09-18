@@ -153,6 +153,14 @@ Spanish voices: `ef_dora` (female, default), `em_alex` and `em_santa` (male). Li
 `jarvis config set tts.voice em_alex`; speed with `tts.speed`. Without the model downloaded it falls back to the system
 voice (and automatically prefers "Premium/Enhanced" voices if you install them in Settings → Accessibility → Spoken Content).
 
+To replace Kokoro, set another configured provider and remove the Kokoro-only
+voice setting from the active configuration. For example, inspect the current
+values with `jarvis config show`, then set `tts.provider` and its provider
+options in `config/assistant.yaml`. Keep `tts.voice` only when the replacement
+provider documents that voice name; Kokoro voice identifiers such as
+`ef_dora` are not portable between providers. Run `jarvis doctor` and
+`jarvis tts say "Prueba de voz"` after changing providers.
+
 ## Usage
 
 | Command | What it does |
