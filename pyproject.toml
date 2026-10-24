@@ -15,7 +15,7 @@ dependencies = [
   "pvporcupine>=4.0",
   "fastapi>=0.115",
   "uvicorn[standard]>=0.30",
-  "pypdf>=5.0",
+  "pypdf>=6.21.2",
   "kokoro-onnx>=0.6",
   "mlx-whisper>=0.4",
 ]
