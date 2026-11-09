@@ -64,10 +64,11 @@ class ClaudeConfig(BaseModel):
     cwd: Path | None = None  # directorio de trabajo del agente (None = carpeta personal)
     # Red de seguridad propia: aunque el clasificador automático lo apruebe, estos comandos SIEMPRE te piden permiso.
     always_confirm_patterns: list[str] = Field(default_factory=lambda: [
-        r"\brm\s+(-[a-zA-Z]*r[a-zA-Z]*|--recursive)", r"\brm\s+-[a-zA-Z]*f", r"\bsudo\b", r"\bmkfs\b", r"\bdd\s+if=",
-        r"\bgit\s+push\b.*(-f|--force)", r"\bgit\s+reset\s+--hard", r"\bkill(all)?\b", r"\bchmod\s+-R", r"\bchown\b",
-        r">\s*/(etc|usr|System|Library)", r"\bdiskutil\b", r"\blaunchctl\s+(unload|bootout)", r"\bdefaults\s+write\b",
-        r"\bosascript\b.*(delete|erase|empty)", r"\bshutdown\b", r"\breboot\b", r"\bcurl\b.*\|\s*(ba)?sh"])
+        r"\brm\s+(-[a-zA-Z]*r[a-zA-Z]*|--recursive)", r"\brm\s+-[a-zA-Z]*f", r"\bsudo\b", r"\bmkfs\b", r"\bdd\s+\w+=",
+        r"\bgit\s+push\b.*(-f|--force)", r"\bgit\s+reset\s+--hard", r"\bgit\s+clean\b.*\s(-[a-zA-Z]*f|--force)",
+        r"\bkill(all)?\b", r"\bpkill\b", r"\bchmod\s+-R", r"\bchown\b", r">\s*/(etc|usr|System|Library)", r"\bdiskutil\b",
+        r"\blaunchctl\s+(unload|bootout)", r"\bdefaults\s+(write|delete)\b", r"\bosascript\b.*(delete|erase|empty)",
+        r"\bshutdown\b", r"\breboot\b", r"\bcurl\b.*\|\s*(ba)?sh"])
     setting_sources: list[Literal["user", "project", "local"]] = Field(default_factory=list)
     effort: Literal["low", "medium", "high", "xhigh", "max"] | None = "low"  # asistente de voz: rapidez; sube a medium/high si lo necesitas
     max_turns: int = 8  # límite de turnos de herramientas por petición
