@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from jarvis.agent.approvals import ApprovalManager, ApprovalError, args_hash
+from jarvis.agent.claude_adapter import AgentSDKProvider
 from jarvis.agent.tools import ToolRegistry, TurnContext, resolve_within, ToolDenied
 from jarvis.config import Config
 from jarvis.memory.events import EventBus
@@ -133,6 +134,42 @@ def test_malicious_document_is_data(env):
     r = asyncio.run(reg.execute("read_file", {"path": str(doc)}))  # fuera de los dirs permitidos
     assert not r.ok
     assert svc.get(m.id) is not None  # nada se borró por leer el documento
+
+
+def _guardrail_asks(reg, cfg, command):
+    bash_matcher = AgentSDKProvider(cfg, reg, "")._options().hooks["PreToolUse"][0]
+    out = asyncio.run(bash_matcher.hooks[0]({"tool_name": "Bash", "tool_input": {"command": command}}, None, None))
+    return out.get("hookSpecificOutput", {}).get("permissionDecision") == "ask"
+
+
+@pytest.mark.parametrize("command", [
+    "dd if=image.img of=/dev/disk2",
+    "dd of=/dev/disk2 if=image.img",
+    "dd bs=1m of=/dev/rdisk2",
+    "mkfs.ext4 /dev/sda1",
+    "git clean -fdx",
+    "git clean -xdf",
+    "git clean -d -f",
+    "git clean --force",
+    "launchctl unload ~/Library/LaunchAgents/com.example.plist",
+    "defaults delete com.apple.dock",
+    "pkill -f python",
+])
+def test_destructive_commands_ask(env, command):
+    cfg, svc, reg, approvals, tmp = env
+    assert _guardrail_asks(reg, cfg, command)
+
+
+@pytest.mark.parametrize("command", [
+    "git clean -n",
+    "git clean -nd some-folder",
+    "defaults read com.apple.dock",
+    "pgrep python",
+    "dd --version",
+])
+def test_harmless_lookalikes_do_not_ask(env, command):
+    cfg, svc, reg, approvals, tmp = env
+    assert not _guardrail_asks(reg, cfg, command)
 
 
 def test_no_secrets_in_logs(tmp_path):
